@@ -7,17 +7,16 @@ import java.util.Scanner;
 /**
  * EconomicDatabase class that populates database, gets user input, sorts, and prints out data
  * @author Alex Ru
- * @version 05.05.24
+ * @version 05.12.24
+ * I ADDED AN EXTRA BY ACCIDENT
+ * Check getSearchCriteria and CountryComparator
  */
 public class EconomicDatabase {
     private ArrayList<Country> database;
-    private ArrayList<String> categories = new ArrayList<>(Arrays.asList("NA", "RE", "YR", "OS", "PR", "GI", "JE", "TB", "GS", "FH", "BF", "LF", "MF", "TF", "IF", "FF"));
-    private double[] indices;
+    private final ArrayList<String> categories = new ArrayList<>(Arrays.asList("NA", "RE", "YR", "OS", "PR", "GI", "JE", "TB", "GS", "FH", "BF", "LF", "MF", "TF", "IF", "FF"));
     private CountryComparator myComparator;
     private String primarySort, secondarySort;
     private boolean asc;
-    //private String[] ;
-    private String[] secondaryTerms;
 
     /**
      * Default constructor
@@ -25,6 +24,8 @@ public class EconomicDatabase {
     public EconomicDatabase() {
         database = new ArrayList<>();
         myComparator = new CountryComparator();
+        primarySort = "";
+        secondarySort = "";
     }
 
     /**
@@ -38,22 +39,6 @@ public class EconomicDatabase {
             while(in.hasNextLine()) {
                 line = in.nextLine().split(",");
                 database.add(new Country(line));
-//                database.add(new Country(line[0], line[1],
-//                        Integer.parseInt(line[2]),
-//                        Double.parseDouble(line[3]),
-//                        Double.parseDouble(line[4]),
-//                        Double.parseDouble(line[5]),
-//                        Double.parseDouble(line[6]),
-//                        Double.parseDouble(line[7]),
-//                        Double.parseDouble(line[8]),
-//                        Double.parseDouble(line[9]),
-//                        Double.parseDouble(line[10]),
-//                        Double.parseDouble(line[11]),
-//                        Double.parseDouble(line[12]),
-//                        Double.parseDouble(line[13]),
-//                        Double.parseDouble(line[14]),
-//                        Double.parseDouble(line[15]))
-//                );
             }
             in.close();
         } catch(Exception e) { e.printStackTrace(); }
@@ -65,9 +50,9 @@ public class EconomicDatabase {
      */
     public boolean getSearchCriteria() {
         Scanner in = new Scanner(System.in);
-        String sort;
         String asc;
         String ssort;
+        boolean primary = true;
 
         System.out.print("*** Welcome to the World Economic Freedom Database ***\n" +
                 "+ Menu of search terms to use for sorting countries +\n" +
@@ -76,94 +61,82 @@ public class EconomicDatabase {
                 "\tYR: Year\n" +
                 "\tOS: Overall Score\n" +
                 "\tIN: Specific Index\n");
-        while(true) {
-            System.out.print("Enter your preferred sort by term or 'Q' to quit: ");
-            sort = in.nextLine();
-            if(sort.equals("Q")) return false;
-            if(sort.equals("NA") || sort.equals("RE") || sort.equals("YR") || sort.equals("OS") || sort.equals("IN")) break;
-        }
-        if(sort.equals("IN")) {
-            while(true) {
-                System.out.print("\nSearch term selected specific index, please select the index value to display:\n" +
-                        "\tPR: Property Rights\n" +
-                        "\tGI: Government Integrity\n" +
-                        "\tJE: Judicial Effectiveness\n" +
-                        "\tTB: Tax Burden\n" +
-                        "\tGS: Government Spending\n" +
-                        "\tFH: Fiscal Health\n" +
-                        "\tBF: Business Freedom\n" +
-                        "\tLF: Labor Freedom\n" +
-                        "\tMF: Monetary Freedom\n" +
-                        "\tTF: Trade Freedom\n" +
-                        "\tIF: Investment Freedom\n" +
-                        "\tFF: Financial Freedom\n");
-                System.out.print("Enter your preferred sort by index or 'Q' to quit: ");
-                sort = in.nextLine();
-                String[] options = {"PR", "GI", "JE", "TB", "GS", "FH", "BF", "LF", "MF", "TF", "IF", "FF"};
-                if(sort.equals("Q")) return false;
-                else if(Arrays.asList(options).contains(sort)) break;
-            }
-        }
-        if(categories.contains(sort)) {
-            primarySort = sort;
-        }
+        System.out.print("Enter your preferred sort by term or 'Q' to quit: ");
+        primarySort = in.nextLine().toUpperCase();
+        if(primarySort.equals("Q") || !(primarySort.equals("NA") || primarySort.equals("RE") || primarySort.equals("YR") || primarySort.equals("OS") || primarySort.equals("IN"))) return false;
+        System.out.print("Enter 'A' to sort in ascending order or 'D' to sort in descending order: ");
+        asc = in.nextLine().toUpperCase();
+        if(asc.equals("A")) this.asc = true;
+        else if(asc.equals("D")) this.asc = false;
         else return false;
-
-        while(true) {
-            System.out.print("Enter 'A' to sort in ascending order or 'D' to sort in descending order: ");
-            asc = in.nextLine();
-            if(asc.equals("A")) {
-                this.asc = true;
-                break;
-            }
-            else if(asc.equals("D")) {
-                this.asc = false;
-                break;
-            }
+        if(primarySort.equals("IN")) {
+            System.out.print("\nSearch term selected specific index, please select the index value to display:\n" +
+                    "\tPR: Property Rights\n" +
+                    "\tGI: Government Integrity\n" +
+                    "\tJE: Judicial Effectiveness\n" +
+                    "\tTB: Tax Burden\n" +
+                    "\tGS: Government Spending\n" +
+                    "\tFH: Fiscal Health\n" +
+                    "\tBF: Business Freedom\n" +
+                    "\tLF: Labor Freedom\n" +
+                    "\tMF: Monetary Freedom\n" +
+                    "\tTF: Trade Freedom\n" +
+                    "\tIF: Investment Freedom\n" +
+                    "\tFF: Financial Freedom\n");
+            System.out.print("Enter your preferred sort by index or 'Q' to quit: ");
+            secondarySort = in.nextLine().toUpperCase();
+            ArrayList<String> options = new ArrayList<>(Arrays.asList("PR", "GI", "JE", "TB", "GS", "FH", "BF", "LF", "MF", "TF", "IF", "FF"));
+            if(secondarySort.equals("Q") || !options.contains(secondarySort)) return false;
+            primary = false;
         }
 
-        System.out.print("+ Menu of search terms to use for sorting countries +\n" +
-                "\tNA: Country Name\n" +
-                "\tRE: Region\n" +
-                "\tYR: Year\n" +
-                "\tOS: Overall Score\n" +
-                "\tIN: Specific Index\n" +
-                "\tPR: Property Rights\n" +
-                "\tGI: Government Integrity\n" +
-                "\tJE: Judicial Effectiveness\n" +
-                "\tTB: Tax Burden\n" +
-                "\tGS: Government Spending\n" +
-                "\tFH: Fiscal Health\n" +
-                "\tBF: Business Freedom\n" +
-                "\tLF: Labor Freedom\n" +
-                "\tMF: Monetary Freedom\n" +
-                "\tTF: Trade Freedom\n" +
-                "\tIF: Investment Freedom\n" +
-                "\tFF: Financial Freedom\n");
-        while(true) {
+        // EXTRA THAT I MADE ACCIDENTALLY BECAUSE I DIDN'T UNDERSTAND THE GUIDELINES
+        // I DON'T WANT TO DELETE MY HARD WORK
+        // I thought that secondary sort meant how to sort countries if they have the same value for the primary category
+        String sort = (primary) ? primarySort : secondarySort;
+        System.out.print("Enter 'Y' if you want to add a secondary sort category and 'N' if not: ");
+        String secondary = in.nextLine().toUpperCase();
+        if(secondary.equals("Y")) {
+            System.out.print("+ Menu of search terms to use for sorting countries +\n" +
+                    "\tNA: Country Name\n" +
+                    "\tRE: Region\n" +
+                    "\tYR: Year\n" +
+                    "\tOS: Overall Score\n" +
+                    "\tIN: Specific Index\n" +
+                    "\tPR: Property Rights\n" +
+                    "\tGI: Government Integrity\n" +
+                    "\tJE: Judicial Effectiveness\n" +
+                    "\tTB: Tax Burden\n" +
+                    "\tGS: Government Spending\n" +
+                    "\tFH: Fiscal Health\n" +
+                    "\tBF: Business Freedom\n" +
+                    "\tLF: Labor Freedom\n" +
+                    "\tMF: Monetary Freedom\n" +
+                    "\tTF: Trade Freedom\n" +
+                    "\tIF: Investment Freedom\n" +
+                    "\tFF: Financial Freedom\n");
             System.out.print("Enter your preferred secondary sort by index or leave blank for default (name): ");
             ssort = in.nextLine();
-            if(sort.equals(ssort)) {
-                continue;
-            }
-            else if(ssort.isEmpty() && !sort.equals("NA")) {
-                secondarySort = "NA";
+            if(ssort.isEmpty()) ssort = "NA";
+            if(categories.contains(ssort)) {
+                myComparator = new CountryComparator(this.asc, categories.indexOf(sort), categories.indexOf(ssort));
                 return true;
             }
-            else if(categories.contains(ssort)) {
-                secondarySort = ssort;
-                return true;
-            }
+            else return false;
         }
-
+        else if(secondarySort.equals("N")) {
+            myComparator = new CountryComparator(this.asc, categories.indexOf(sort));
+            return true;
+        }
+        else return false;
     }
 
     /**
      * Sorts database based on sort categories
      */
     public void sortDB() {
-        myComparator = new CountryComparator(asc, categories.indexOf(primarySort), categories.indexOf(secondarySort));
-        database.sort(myComparator);
+        MergeSort mySorter = new MergeSort(database, myComparator);
+        mySorter.sort(database, 0, database.size() - 1);
     }
 
     /**
@@ -171,7 +144,9 @@ public class EconomicDatabase {
      */
     public void printDatabase() {
         for(Country country : database) {
-            System.out.println(country);
+            System.out.print(country);
+            if(!secondarySort.isEmpty()) System.out.println(country.getDataValue(categories.indexOf(secondarySort)));
+            else System.out.println();
         }
     }
 
